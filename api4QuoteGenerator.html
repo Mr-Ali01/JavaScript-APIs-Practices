@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Random Quote Generator</title>
+  <style>
+    body { font-family: Arial, sans-serif; display: grid; place-content: center; height: 100vh; background: #f4f4f9; }
+    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 400px; text-align: center; }
+    button { padding: 10px 15px; border: none; background: #007bff; color: white; border-radius: 4px; cursor: pointer; }
+    button:disabled { background: #ccc; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <p id="quote">"Click the button to load a quote!"</p>
+    <h4 id="author"></h4>
+    <button id="btn" onclick="fetchQuote()">Get Quote</button>
+  </div>
+
+  <script>
+    async function fetchQuote() {
+      const quoteEl = document.getElementById('quote');
+      const authorEl = document.getElementById('author');
+      const btn = document.getElementById('btn');
+
+      // Free public API endpoint
+      const API_URL = 'https://dummyjson.com/quotes/random';
+
+      try {
+        btn.disabled = true;
+        quoteEl.innerText = "Loading...";
+        authorEl.innerText = "";
+
+        // YOUR TASK: Complete the fetch logic here!
+        // 1. Fetch data from API_URL
+        // 2. Check if response is ok
+        // 3. Parse JSON (The response format is: { quote: "...", author: "..." })
+        // 4. Update UI: quoteEl.innerText and authorEl.innerText
+
+        const quoeGeneratorResponse =await fetch(API_URL);
+        if(!quoeGeneratorResponse.ok){
+          throw new Error(`HTTP Error! Status:${quoeGeneratorResponse.status}`);
+        } else {
+          console.log("HTTP Error Correct");
+        }
+        const quoeGeneratorData = await quoeGeneratorResponse.json();
+        quoteEl.innerHTML = `${quoeGeneratorData.quote}`;
+        authorEl.innerHTML = `${quoeGeneratorData.author}`;
+
+      } catch (error) {
+        quoteEl.innerText = "Failed to load quote. Please try again.";
+        console.error(error);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
