@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Auth POST Tester</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+    body { background-color: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+    .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 30px; width: 100%; max-width: 500px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4); }
+    h2 { margin-bottom: 20px; color: #38bdf8; text-align: center; }
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: 14px; margin-bottom: 6px; color: #94a3b8; }
+    select, textarea { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: #f8fafc; font-size: 14px; outline: none; }
+    select:focus, textarea:focus { border-color: #38bdf8; }
+    button { width: 100%; padding: 12px; background: #0284c7; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+    button:disabled { background: #64748b; cursor: not-allowed; }
+    .response-box { margin-top: 20px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 15px; display: none; }
+    .response-box h4 { font-size: 14px; margin-bottom: 8px; color: #38bdf8; }
+    pre { font-family: monospace; font-size: 12px; color: #4ade80; white-space: pre-wrap; word-break: break-all; }
+    .status-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-bottom: 8px; }
+    .status-200 { background: #166534; color: #bbf7d0; }
+    .status-error { background: #991b1b; color: #fecaca; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>Submit User Feedback (Topic 6)</h2>
+    
+    <form id="feedbackForm">
+      <div class="form-group">
+        <label for="rating">Rating (1 to 5 Stars)</label>
+        <select id="rating">
+          <option value="5" selected>⭐⭐⭐⭐⭐ (5 - Excellent)</option>
+          <option value="4">⭐⭐⭐⭐ (4 - Good)</option>
+          <option value="3">⭐⭐⭐ (3 - Average)</option>
+          <option value="2">⭐⭐ (2 - Poor)</option>
+          <option value="1">⭐ (1 - Terrible)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="comment">Your Comment</label>
+        <textarea id="comment" rows="3" required>Awesome API roadmap!</textarea>
+      </div>
+
+      <button type="submit" id="submitBtn">Send POST Request</button>
+    </form>
+
+    <!-- Response Display -->
+    <div id="responseContainer" class="response-box">
+      <div id="statusBadge" class="status-badge"></div>
+      <h4>Server Response Body:</h4>
+      <pre id="jsonOutput"></pre>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('feedbackForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const responseContainer = document.getElementById('responseContainer');
+    const statusBadge = document.getElementById('statusBadge');
+    const jsonOutput = document.getElementById('jsonOutput');
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const rating = Number(document.getElementById('rating').value);
+      const comment = document.getElementById('comment').value.trim();
+
+      // Working Public Testing Endpoint
+      const API_URL = 'https://jsonplaceholder.typicode.com/posts';
+      const token = 'my_secret_token_999';
+
+      // 1. Data we are sending
+      const feedbackData = {
+        rating: rating,
+        comment: comment,
+        submittedAt: new Date().toLocaleTimeString()
+      };
+
+      try {
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Sending Request...";
+        responseContainer.style.display = "none";
+
+        // 2. Fetch call with method, headers, and body
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,      // Auth header
+            'Content-Type': 'application/json; charset=UTF-8' // Payload header
+          },
+          body: JSON.stringify(feedbackData)
+        });
+
+        // 3. Status check
+        if (!response.ok) {
+          throw new Error(`HTTP Error! Status: ${response.status}`);
+        }
+
+        // 4. Parse response from server
+        const data = await response.json();
+
+        // 5. Display response cleanly
+        responseContainer.style.display = "block";
+        statusBadge.className = "status-badge status-200";
+        statusBadge.innerText = `Status: ${response.status} (Created Successfully!)`;
+        
+        // Show what the server returned back
+        jsonOutput.innerText = JSON.stringify(data, null, 2);
+
+      } catch (error) {
+        responseContainer.style.display = "block";
+        statusBadge.className = "status-badge status-error";
+        statusBadge.innerText = "Error";
+        jsonOutput.innerText = `Error: ${error.message}`;
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Send POST Request";
+      }
+    });
+  </script>
+</body>
+</html>

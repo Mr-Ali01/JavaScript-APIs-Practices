@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mini Weather App</title>
+  <style>
+    body { font-family: sans-serif; display: grid; place-content: center; height: 100vh; background: #0f172a; color: white; }
+    .card { background: #1e293b; padding: 25px; border-radius: 10px; width: 320px; text-align: center; }
+    input { padding: 10px; width: 65%; border-radius: 5px; border: none; }
+    button { padding: 10px 14px; background: #38bdf8; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+    .weather-info { margin-top: 15px; }
+    .error { color: #f87171; margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h3>Live Weather Finder</h3>
+    <input type="text" id="cityInput" placeholder="Enter city (e.g. London)">
+    <button onclick="getWeather()">Check</button>
+
+    <div class="weather-info" id="info"></div>
+    <p class="error" id="errorMsg"></p>
+  </div>
+
+  <script>
+    async function getWeather() {
+      const city = document.getElementById('cityInput').value.trim();
+      const infoDiv = document.getElementById('info');
+      const errorMsg = document.getElementById('errorMsg');
+
+      errorMsg.innerText = "";
+      infoDiv.innerHTML = "";
+
+      if (!city) {
+        errorMsg.innerText = "Please enter a city name!";
+        return;
+      }
+
+      // Public Open-Meteo Geocoding API (No registration key needed for learning)
+      const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`;
+
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Network error occurred!");
+
+        const data = await response.json();
+
+        if (!data.results || data.results.length === 0) {
+          throw new Error("City not found! Please check the spelling.");
+        }
+
+        const cityData = data.results[0];
+        infoDiv.innerHTML = `
+          <h4>${cityData.name}, ${cityData.country}</h4>
+          <p>Latitude: ${cityData.latitude}°</p>
+          <p>Longitude: ${cityData.longitude}°</p>
+          <p>Timezone: ${cityData.timezone}</p>
+        `;
+      } catch (err) {
+        errorMsg.innerText = err.message;
+      }
+    }
+  </script>
+</body>
+</html>

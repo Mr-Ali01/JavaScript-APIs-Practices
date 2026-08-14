@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Debounced Search</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+    body { background-color: #0f172a; color: #f8fafc; display: flex; justify-content: center; padding: 50px 20px; }
+    .search-container { width: 100%; max-width: 500px; }
+    h2 { margin-bottom: 20px; text-align: center; color: #38bdf8; }
+    .input-wrapper { position: relative; }
+    input { width: 100%; padding: 14px 16px; border-radius: 8px; border: 1px solid #334155; background: #1e293b; color: white; font-size: 16px; outline: none; }
+    input:focus { border-color: #38bdf8; }
+    #status { margin-top: 10px; font-size: 13px; color: #94a3b8; min-height: 20px; }
+    .results-list { margin-top: 15px; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .product-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; }
+    .product-title { font-weight: 600; color: #f1f5f9; }
+    .product-price { color: #4ade80; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <div class="search-container">
+    <h2>🛍️ Live Product Search</h2>
+    <div class="input-wrapper">
+      <input type="text" id="searchInput" placeholder="Type to search (e.g. phone, laptop)..." autocomplete="off">
+    </div>
+    <p id="status"></p>
+    <ul id="resultsList" class="results-list"></ul>
+  </div>
+
+  <script>
+    const searchInput = document.getElementById('searchInput');
+    const statusText = document.getElementById('status');
+    const resultsList = document.getElementById('resultsList');
+
+    // ==========================================
+    // ✍️ YOUR TASK: WRITE ONLY THIS JS SECTION
+    // ==========================================
+
+    // 1. Write the generic debounce(fn, delay) function
+    function debounce(fn, delay) {
+      // TODO: Define timer variable and return the debounced wrapper function
+    }
+
+    // 2. Write the async function to fetch products from DummyJSON
+    // API Endpoint: `https://dummyjson.com/products/search?q=${encodeURIComponent(query)}`
+    async function searchProducts(query) {
+      // TODO:
+      // a. If query is empty, clear resultsList & statusText and return.
+      // b. Show status: "Searching..."
+      // c. Fetch data from the endpoint with try...catch
+      // d. Check response.ok and parse JSON
+      // e. If no products found (data.products.length === 0), show "No products found."
+      // f. If products found, render each item into resultsList as:
+      //    `<li class="product-card">
+      //       <span class="product-title">${product.title}</span>
+      //       <span class="product-price">$${product.price}</span>
+      //     </li>`
+    }
+
+    // 3. Create the debounced version (500ms delay)
+    // const debouncedSearch = ...
+
+    // 4. Attach event listener to searchInput for 'input' event
+    // searchInput.addEventListener('input', (e) => { ... });
+
+  </script>
+</body>
+</html>
