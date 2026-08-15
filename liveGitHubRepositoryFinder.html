@@ -41,7 +41,16 @@
     // ==========================================================
 
     // Step 1: Write the debounce(fn, delay) function
-
+    function userDebounce(callbackFucntion, delay = 500) {
+      let timer;
+      return function(...args){
+        clearTimeout(timer);
+        timer = setTimeout(()=>{
+          callbackFucntion(...args);
+        },delay);
+      };
+    }
+    
     // Step 2: Write the async function searchRepos(query)
     // - Check if query is empty -> clear UI and return
     // - Set statusText: "Searching GitHub..."
@@ -53,11 +62,63 @@
     //      <a href="${repo.html_url}" target="_blank">${repo.full_name}</a>
     //      <span class="star-badge">⭐ ${repo.stargazers_count}</span>
     //    </li>`
+    async function searchRepos(query) {
+        const searchTerm = query.trim();
+      if(!searchTerm) {
+        repoList.innerHTML="";
+        statusText.innerText = "";
+        return;
+      }
+      console.log("kaise");
+      
+        statusText.innerText="Searching GitHub...";
+        try{
+
+          const url = `https://api.github.com/search/repositories?q=${encodeURIComponent(searchTerm)}&per_page=5`
+          const responseData = await fetch(url);
+      console.log("kaise2");
+
+          if(responseData.ok) {
+      console.log("kaise2");
+
+            const userRepo = await responseData.json();
+            const repos = userRepo.items;
+      console.log("kaise3");
+
+            repoList.innerHTML="";
+            if(!repos || repos.length === 0) {
+              statusText.innerText=`No users found for "${searchTerm}".`;
+              return;
+            }
+            statusText.innerText=`Found ${repos.length} users:`;
+
+            repos.map(repo => {
+              const item = document.createElement('li');
+              item.className='repo-card';
+              item.innerHTML = `
+              <a href="${repo.html_url}" target="_blank">${repo.full_name}</a>
+              <span class="star-badge">⭐ ${repo.stargazers_count}</span>`;
+              repoList.appendChild(item);
+            });
+          } else {
+            throw new Error(`HTTP Error: ${responseData.status}`);
+            
+          }
+        } catch(error){
+      console.log("kaise5");
+
+          statusText.innerText=`Error: ${error.message}`;
+    }
+    }
+    
+    
 
     // Step 3: Create the debounced version (500ms delay)
-
+ const handleUserDebouncedInput = userDebounce(searchRepos,500);
     // Step 4: Add the 'input' event listener on repoInput
-
+repoInput.addEventListener('input', (event)=>{
+  handleUserDebouncedInput(event.target.value)
+});
   </script>
 </body>
 </html>
