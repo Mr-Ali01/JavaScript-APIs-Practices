@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CORS Working Example</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
+    body { background-color: #0f172a; color: #f8fafc; display: flex; justify-content: center; padding: 40px 16px; }
+    .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; width: 100%; max-width: 520px; }
+    h2 { color: #38bdf8; margin-bottom: 12px; text-align: center; }
+    p.desc { font-size: 14px; color: #94a3b8; margin-bottom: 20px; line-height: 1.5; }
+    button { width: 100%; padding: 12px; background: #0284c7; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; }
+    button:hover { background: #0369a1; }
+    .status-badge { margin-top: 16px; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: bold; display: none; }
+    .status-success { background: #166534; color: #bbf7d0; }
+    .status-error { background: #991b1b; color: #fecaca; }
+    pre { margin-top: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 14px; color: #4ade80; font-size: 13px; white-space: pre-wrap; word-break: break-all; max-height: 220px; overflow-y: auto; display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>🌐 CORS Request Tester</h2>
+    <p class="desc">
+      Your current origin is <strong>window.location.origin</strong>. Clicking below makes a cross-origin request to an external server that has configured <code>Access-Control-Allow-Origin: *</code>.
+    </p>
+
+    <button id="testBtn" onclick="runCrossOriginRequest()">Send Cross-Origin Request</button>
+
+    <div id="statusBadge" class="status-badge"></div>
+    <pre id="output"></pre>
+  </div>
+
+  <script>
+    async function runCrossOriginRequest() {
+      const btn = document.getElementById('testBtn');
+      const badge = document.getElementById('statusBadge');
+      const output = document.getElementById('output');
+
+      const TARGET_API = 'https://jsonplaceholder.typicode.com/todos/1';
+
+      try {
+        btn.disabled = true;
+        btn.innerText = 'Requesting Cross-Origin Data...';
+        badge.style.display = 'none';
+        output.style.display = 'none';
+
+        // 1. Fetching from an external domain
+        const response = await fetch(TARGET_API);
+
+        // 2. Checking HTTP status
+        if (!response.ok) {
+          throw new Error(`HTTP Error: ${response.status}`);
+        }
+
+        // 3. Parsing response body
+        const data = await response.json();
+
+        // 4. Updating UI on successful CORS resolution
+        badge.className = 'status-badge status-success';
+        badge.innerText = `✅ CORS Success! Status: ${response.status} OK`;
+        badge.style.display = 'block';
+
+        output.innerText = JSON.stringify({
+          clientOrigin: window.location.origin || "Local File / Localhost",
+          targetDomain: "jsonplaceholder.typicode.com",
+          receivedData: data
+        }, null, 2);
+        output.style.display = 'block';
+
+      } catch (err) {
+        // 5. Handling CORS blocks or network failures
+        badge.className = 'status-badge status-error';
+        badge.innerText = `❌ Request Failed / CORS Blocked`;
+        badge.style.display = 'block';
+
+        output.innerText = `Error: ${err.message}\n\nNote: If this was blocked by CORS, check browser DevTools Console for 'No Access-Control-Allow-Origin header' errors.`;
+        output.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Send Cross-Origin Request';
+      }
+    }
+  </script>
+</body>
+</html>

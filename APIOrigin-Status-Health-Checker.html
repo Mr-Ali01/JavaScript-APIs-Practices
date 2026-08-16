@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Health & CORS Checker</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
+    body { background-color: #0f172a; color: #f8fafc; display: flex; justify-content: center; padding: 40px 16px; }
+    .container { width: 100%; max-width: 550px; }
+    h2 { color: #38bdf8; text-align: center; margin-bottom: 8px; }
+    .subtitle { color: #94a3b8; font-size: 14px; text-align: center; margin-bottom: 20px; }
+    .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; }
+    .form-group { display: flex; gap: 8px; margin-bottom: 16px; }
+    input { flex: 1; padding: 12px 14px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: white; font-size: 14px; outline: none; }
+    input:focus { border-color: #38bdf8; }
+    button { padding: 12px 18px; background: #0284c7; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    button:disabled { background: #64748b; cursor: not-allowed; }
+    .result-box { margin-top: 15px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 16px; display: none; }
+    .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-bottom: 10px; }
+    .badge-ok { background: #166534; color: #bbf7d0; }
+    .badge-err { background: #991b1b; color: #fecaca; }
+    pre { font-family: monospace; font-size: 13px; color: #e2e8f0; white-space: pre-wrap; word-break: break-all; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>📡 Cross-Origin API Checker</h2>
+    <p class="subtitle">Test whether any public API allows CORS requests from your browser</p>
+
+    <div class="card">
+      <div class="form-group">
+        <input type="text" id="apiUrlInput" value="https://api.github.com/users/octocat" placeholder="Enter API URL...">
+        <button id="checkBtn" onclick="checkApiHealth()">Check API</button>
+      </div>
+
+      <div id="resultBox" class="result-box">
+        <div id="badge" class="badge"></div>
+        <pre id="details"></pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const apiUrlInput = document.getElementById('apiUrlInput');
+    const checkBtn = document.getElementById('checkBtn');
+    const resultBox = document.getElementById('resultBox');
+    const badge = document.getElementById('badge');
+    const details = document.getElementById('details');
+
+    // =========================================================================
+    // ✍️ WRITE YOUR JAVASCRIPT LOGIC INSIDE THIS FUNCTION
+    // =========================================================================
+    /**
+     * DOCUMENTATION / TASK REQUIREMENTS:
+     * 1. Extract the URL string from apiUrlInput.value.trim().
+     *    - If empty, alert or show an error and return.
+     * 2. Set loading state:
+     *    - checkBtn.disabled = true;
+     *    - checkBtn.innerText = "Checking...";
+     *    - resultBox.style.display = "none";
+     * 3. Inside a try...catch block:
+     *    - Make a fetch(url, { method: 'GET' }) call.
+     *    - Check if response.ok is true.
+     *    - Parse the JSON with await response.json().
+     *    - Display success:
+     *        * resultBox.style.display = "block"
+     *        * badge.className = "badge badge-ok"
+     *        * badge.innerText = `✅ Allowed (Status: ${response.status})`
+     *        * details.innerText = Pretty formatted JSON string of the first 2-3 keys
+     * 4. Inside the catch block:
+     *    - Handle CORS block or network drop:
+     *        * resultBox.style.display = "block"
+     *        * badge.className = "badge badge-err"
+     *        * badge.innerText = `❌ Blocked by CORS / Network Error`
+     *        * details.innerText = error.message
+     * 5. Inside the finally block:
+     *    - Restore checkBtn.disabled = false and checkBtn.innerText = "Check API".
+     */
+    async function checkApiHealth() {
+        const apiUrl = apiUrlInput.value.trim();
+        if(!apiUrl){
+            alert("Please Enter the API URL");
+            return;
+        }
+        checkBtn.disabled = true;
+        checkBtn.innerText="Checking...";
+        resultBox.style.display="none";
+
+        try {
+            const response =await fetch(apiUrl, {
+                method: 'GET'
+            });
+            if(!response.ok){
+                console.log("REsponse Error");
+                throw new Error(`HTTP ERROR: ${response.status}`);
+            }
+            const responseData =await response.json();
+            resultBox.style.display="block";
+            badge.className="badge badge-ok";
+            badge.innerText=`Status: ${response.status}`;
+           details.innerText = JSON.stringify({
+      clientOrigin: window.location.origin || "Localhost",
+      targetDomain: apiUrl,
+      receivedData: responseData
+    }, null, 2);
+        } catch (error) {
+    // 4. Overwrite details cleanly in the error state
+    resultBox.style.display = "block";
+    badge.className = "badge badge-err";
+    
+    // Distinguish between pure CORS blocks and HTTP 4xx/5xx status codes
+    if (error.message.includes("Failed to fetch")) {
+      badge.innerText = `❌ Blocked by CORS Policy`;
+      details.innerText = `Domain: ${apiUrl}\nReason: The server did not provide 'Access-Control-Allow-Origin', so your browser blocked access.`;
+    } else {
+      badge.innerText = `⚠️ Request Error: ${error.message}`;
+      details.innerText = `Domain: ${apiUrl}\nReason: The server accepted the connection, but returned an error response.`;
+    }
+  } finally {
+    checkBtn.disabled = false;
+    checkBtn.innerText = "Check API";
+  }
+      // TODO: Write your solution here
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevCommerce Admin Hub</title>
+  <style>
+    :root {
+      --bg-main: #0b1329;
+      --card-bg: #1c2541;
+      --card-border: #3a506b;
+      --accent-blue: #48cae4;
+      --accent-green: #52b788;
+      --accent-red: #e63946;
+      --text-light: #f1faee;
+      --text-muted: #8d99ae;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background-color: var(--bg-main); color: var(--text-light); padding: 24px 16px; min-height: 100vh; }
+    .header { max-width: 1100px; margin: 0 auto 24px auto; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 14px; }
+    .header h1 { font-size: 22px; color: var(--accent-blue); }
+    .grid { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px; }
+    .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 20px; display: flex; flex-direction: column; }
+    .card h2 { font-size: 16px; color: var(--accent-blue); margin-bottom: 6px; display: flex; justify-content: space-between; }
+    .card p.desc { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; }
+    input, textarea { width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid var(--card-border); background: var(--bg-main); color: white; font-size: 13px; outline: none; margin-bottom: 10px; }
+    input:focus, textarea:focus { border-color: var(--accent-blue); }
+    .btn-row { display: flex; gap: 8px; margin-bottom: 10px; }
+    button { padding: 10px 14px; background: #0077b6; color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; }
+    button:hover { opacity: 0.9; }
+    button:disabled { background: #4a5568; cursor: not-allowed; }
+    .btn-green { background: var(--accent-green); }
+    .btn-red { background: var(--accent-red); }
+    .status-msg { font-size: 12px; min-height: 18px; margin-bottom: 8px; color: var(--text-muted); }
+    .list-box { max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+    .list-item { background: var(--bg-main); border: 1px solid var(--card-border); padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+    .badge { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+    .badge-ok { background: #1b4332; color: #95d5b2; }
+    .badge-err { background: #5c1d24; color: #f8d7da; }
+    pre { background: var(--bg-main); border: 1px solid var(--card-border); padding: 10px; border-radius: 6px; font-size: 11px; color: #a7f3d0; white-space: pre-wrap; word-break: break-all; max-height: 140px; overflow-y: auto; }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <h1>🛒 DevCommerce Admin Hub</h1>
+    <span class="badge badge-ok" id="originDisplay">Origin: Localhost</span>
+  </header>
+
+  <div class="grid">
+
+    <!-- MODULE 1: DEBOUNCED INVENTORY SEARCH -->
+    <div class="card">
+      <h2>1. Live Catalog Search <span class="badge" style="background:#3a506b">Topics 5 & 7</span></h2>
+      <p class="desc">Query parameters with 500ms debouncing and URL encoding.</p>
+      
+      <input type="text" id="searchInput" placeholder="Search catalog (e.g. phone, laptop, shoes)..." autocomplete="off">
+      <div id="searchStatus" class="status-msg">Type to search catalog</div>
+      <div id="searchResults" class="list-box"></div>
+    </div>
+
+    <!-- MODULE 2: AUTHENTICATED ORDER CREATION (POST) -->
+    <div class="card">
+      <h2>2. Create Order (POST) <span class="badge" style="background:#1b4332">Topics 1, 2 & 6</span></h2>
+      <p class="desc">Sends JSON body payload with Bearer token authentication.</p>
+
+      <input type="text" id="productName" value="Mechanical Keyboard" placeholder="Product Name">
+      <input type="number" id="productPrice" value="89" placeholder="Price ($)">
+      
+      <button id="orderBtn" onclick="createOrder()">Submit Order with Bearer Auth</button>
+      <div id="orderStatus" class="status-msg" style="margin-top:10px;"></div>
+      <pre id="orderOutput" style="display: none;"></pre>
+    </div>
+
+    <!-- MODULE 3: INVENTORY MANAGER (CRUD) -->
+    <div class="card">
+      <h2>3. Inventory Operations <span class="badge" style="background:#713f12; color:#fde047;">Topics 1, 3 & 4</span></h2>
+      <p class="desc">Executes GET (fetch list), PUT (update item), and DELETE requests.</p>
+      
+      <div class="btn-row">
+        <button onclick="fetchInventory()" style="flex:1;">GET Items</button>
+        <button onclick="updateInventoryItem()" class="btn-green" style="flex:1;">PUT Edit #1</button>
+        <button onclick="deleteInventoryItem()" class="btn-red" style="flex:1;">DELETE #1</button>
+      </div>
+      <div id="crudStatus" class="status-msg">Click GET to inspect stock</div>
+      <div id="crudResults" class="list-box"></div>
+    </div>
+
+    <!-- MODULE 4: CORS & PREFLIGHT CHECKER -->
+    <div class="card">
+      <h2>4. CORS Origin Diagnostic <span class="badge badge-err">Topics 4 & 8</span></h2>
+      <p class="desc">Tests whether external APIs allow cross-origin browser access.</p>
+
+      <input type="text" id="corsInput" value="https://dummyjson.com/products/1">
+      <button id="corsBtn" onclick="testCorsEndpoint()">Inspect CORS Headers</button>
+      <div id="corsStatus" class="status-msg" style="margin-top:10px;"></div>
+      <pre id="corsOutput" style="display: none;"></pre>
+    </div>
+
+  </div>
+
+  <script>
+    document.getElementById('originDisplay').innerText = `Origin: ${window.location.origin || 'Local File'}`;
+
+    // ========================================================
+    // 1. DEBOUNCED SEARCH LOGIC (Topics 5 & 7)
+    // ========================================================
+    function debounce(callbackFn, delay = 500) {
+      let timer;
+      return function (...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => callbackFn(...args), delay);
+      };
+    }
+
+    async function searchCatalog(query) {
+      const term = query.trim();
+      const status = document.getElementById('searchStatus');
+      const results = document.getElementById('searchResults');
+
+      if (!term) {
+        status.innerText = "Type to search catalog";
+        results.innerHTML = "";
+        return;
+      }
+
+      status.innerText = `Searching catalog for "${term}"...`;
+
+      try {
+        const url = `https://dummyjson.com/products/search?q=${encodeURIComponent(term)}&limit=4`;
+        const res = await fetch(url);
+        
+        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+        
+        const data = await res.json();
+        results.innerHTML = "";
+
+        if (!data.products || data.products.length === 0) {
+          status.innerText = `No items found for "${term}".`;
+          return;
+        }
+
+        status.innerText = `Found ${data.products.length} products:`;
+        data.products.forEach(p => {
+          const item = document.createElement('div');
+          item.className = 'list-item';
+          item.innerHTML = `<span><strong>${p.title}</strong></span><span style="color:#52b788">$${p.price}</span>`;
+          results.appendChild(item);
+        });
+
+      } catch (err) {
+        status.innerText = `Error: ${err.message}`;
+      }
+    }
+
+    const debouncedCatalogSearch = debounce(searchCatalog, 500);
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      debouncedCatalogSearch(e.target.value);
+    });
+
+    // ========================================================
+    // 2. AUTHENTICATED POST REQUEST (Topics 1, 2 & 6)
+    // ========================================================
+    async function createOrder() {
+      const btn = document.getElementById('orderBtn');
+      const status = document.getElementById('orderStatus');
+      const output = document.getElementById('orderOutput');
+
+      const title = document.getElementById('productName').value.trim();
+      const price = Number(document.getElementById('productPrice').value);
+      const token = "devcommerce_jwt_secure_token_777";
+
+      try {
+        btn.disabled = true;
+        btn.innerText = "Processing Order...";
+        status.innerText = "Transmitting POST request with headers...";
+        output.style.display = "none";
+
+        const res = await fetch('https://jsonplaceholder.typicode.com/posts', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json; charset=UTF-8',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            title: title,
+            body: `Order total: $${price}`,
+            createdAt: new Date().toISOString()
+          })
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const data = await res.json();
+        status.innerHTML = `<span class="badge badge-ok">✅ Status: ${res.status} Created</span>`;
+        output.style.display = "block";
+        output.innerText = JSON.stringify(data, null, 2);
+
+      } catch (err) {
+        status.innerHTML = `<span class="badge badge-err">❌ ${err.message}</span>`;
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Submit Order with Bearer Auth";
+      }
+    }
+
+    // ========================================================
+    // 3. CRUD RESOURCE INVENTORY (Topics 1, 3 & 4)
+    // ========================================================
+    const crudStatus = document.getElementById('crudStatus');
+    const crudResults = document.getElementById('crudResults');
+
+    async function fetchInventory() {
+      crudStatus.innerText = "Fetching items (GET)...";
+      try {
+        const res = await fetch('https://jsonplaceholder.typicode.com/posts?_limit=3');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const items = await res.json();
+        crudResults.innerHTML = "";
+        crudStatus.innerText = "Catalog loaded (GET 200 OK):";
+
+        items.forEach(i => {
+          const div = document.createElement('div');
+          div.className = 'list-item';
+          div.innerHTML = `<span>#${i.id} ${i.title.slice(0, 22)}...</span><span class="badge badge-ok">In Stock</span>`;
+          crudResults.appendChild(div);
+        });
+      } catch (err) {
+        crudStatus.innerText = `Fetch error: ${err.message}`;
+      }
+    }
+
+    async function updateInventoryItem() {
+      crudStatus.innerText = "Updating item #1 (PUT)...";
+      try {
+        const res = await fetch('https://jsonplaceholder.typicode.com/posts/1', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: 1, title: 'Updated Stock: Gaming Laptop', body: 'Price updated' })
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        crudStatus.innerHTML = `<span class="badge badge-ok">✅ PUT 200 OK: #${data.id} "${data.title}"</span>`;
+      } catch (err) {
+        crudStatus.innerText = `Update error: ${err.message}`;
+      }
+    }
+
+    async function deleteInventoryItem() {
+      crudStatus.innerText = "Removing item #1 (DELETE)...";
+      try {
+        const res = await fetch('https://jsonplaceholder.typicode.com/posts/1', {
+          method: 'DELETE'
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        crudStatus.innerHTML = `<span class="badge badge-err">🗑️ DELETE 200 OK: Item #1 deleted</span>`;
+      } catch (err) {
+        crudStatus.innerText = `Delete error: ${err.message}`;
+      }
+    }
+
+    // ========================================================
+    // 4. CORS DIAGNOSTIC LOGIC (Topics 4 & 8)
+    // ========================================================
+    async function testCorsEndpoint() {
+      const url = document.getElementById('corsInput').value.trim();
+      const btn = document.getElementById('corsBtn');
+      const status = document.getElementById('corsStatus');
+      const output = document.getElementById('corsOutput');
+
+      if (!url) return;
+
+      try {
+        btn.disabled = true;
+        btn.innerText = "Inspecting...";
+        status.innerText = "Sending cross-origin request...";
+        output.style.display = "none";
+
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status} (${res.statusText || 'Error'})`);
+
+        const data = await res.json();
+        status.innerHTML = `<span class="badge badge-ok">✅ CORS Allowed (HTTP ${res.status})</span>`;
+        output.style.display = "block";
+        output.innerText = JSON.stringify(data, null, 2);
+
+      } catch (err) {
+        output.style.display = "block";
+        if (err.message.includes("Failed to fetch")) {
+          status.innerHTML = `<span class="badge badge-err">❌ Blocked by CORS Policy</span>`;
+          output.innerText = `Error: The server at ${url} does not return 'Access-Control-Allow-Origin'.`;
+        } else {
+          status.innerHTML = `<span class="badge badge-err">⚠️ HTTP Error</span>`;
+          output.innerText = err.message;
+        }
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Inspect CORS Headers";
+      }
+    }
+  </script>
+</body>
+</html>
